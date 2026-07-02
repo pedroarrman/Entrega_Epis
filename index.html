@@ -309,13 +309,25 @@ function enviarFormulario() {
         "?callback=" + callback +
         "&data=" + encodeURIComponent(JSON.stringify(datos));
 
-    script.onerror = function () {
+let respondio = false;
 
-        alert("❌ Error de conexión con Apps Script");
+window[callback] = function(res) {
 
-        delete window[callback];
+    respondio = true;
 
-    };
+    // ... resto de tu código ...
+
+};
+
+script.onerror = function () {
+
+    if (!respondio) {
+        alert("❌ ERROR DE CONEXIÓN CON APPS SCRIPT");
+    }
+
+    delete window[callback];
+
+};
 
     document.body.appendChild(script);
 
