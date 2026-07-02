@@ -345,7 +345,6 @@ const API_URL="https://script.google.com/macros/s/AKfycbzBk3cCZnlFTZW-vrpI0bmNb0
 
 async function enviarFormulario(){
 
-    const empresa=document.getElementById("empresa").value.trim();
     const nombre=document.getElementById("nombre").value.trim();
     const dni=document.getElementById("dni").value.trim();
     const fecha=document.getElementById("fecha").value;
@@ -355,11 +354,6 @@ async function enviarFormulario(){
     document
         .querySelectorAll("input[name='epi']:checked")
         .forEach(c=>epis.push(c.value));
-
-    if(empresa===""){
-        alert("Seleccione una empresa.");
-        return;
-    }
 
     if(nombre===""){
         alert("Introduzca el nombre.");
@@ -378,7 +372,6 @@ async function enviarFormulario(){
 
     const datos={
 
-        empresa:empresa,
         nombre:nombre,
         dni:dni,
         fecha:fecha,
