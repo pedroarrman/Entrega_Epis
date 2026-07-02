@@ -210,47 +210,50 @@ Cargando datos...
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzBk3cCZnlFTZW-vrpI0bmNb0cEYSFyjYek0f4_HllZQo4hk5q3YMhg2VmZ8obJMVWt/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbzBk3cCZnlFTZW-vrpI0bmNb0cEYSFyjYek0f4_HllZQo4hk5q3YMhg2VmZ8obJMVWt/exec";
 
 function cargarDatos(){
 
-    const estado = document.getElementById("estado");
-    const tbody = document.querySelector("#tabla tbody");
+    const estado=document.getElementById("estado");
+    const tbody=document.querySelector("#tabla tbody");
 
-    estado.innerHTML = "Cargando datos...";
-    tbody.innerHTML = "";
+    estado.innerHTML="Cargando datos...";
+    tbody.innerHTML="";
 
-    const callback = "cb_" + Date.now();
+    const callback="cb_"+Date.now();
 
-    let respondio = false;
+    let respondio=false;
 
-    window[callback] = function(res){
+    window[callback]=function(res){
 
-        respondio = true;
+        respondio=true;
 
-        if(res.status !== "ok"){
-            estado.innerHTML = res.msg;
-            return;
+        if(res.status!=="ok"){
+
+            estado.innerHTML="Error: "+res.msg;
+
+        }else{
+
+            const datos=res.data;
+
+            for(let i=1;i<datos.length;i++){
+
+                const fila=document.createElement("tr");
+
+                fila.innerHTML=`
+                    <td>${datos[i][0]}</td>
+                    <td>${datos[i][1]}</td>
+                    <td>${datos[i][2]}</td>
+                    <td>${datos[i][3]}</td>
+                `;
+
+                tbody.appendChild(fila);
+
+            }
+
+            estado.innerHTML="Registros encontrados: "+(datos.length-1);
+
         }
-
-        const datos = res.data;
-
-        for(let i=1;i<datos.length;i++){
-
-            const fila = document.createElement("tr");
-
-            fila.innerHTML = `
-                <td>${datos[i][0]}</td>
-                <td>${datos[i][1]}</td>
-                <td>${datos[i][2]}</td>
-                <td>${datos[i][3]}</td>
-            `;
-
-            tbody.appendChild(fila);
-
-        }
-
-        estado.innerHTML = "Registros encontrados: " + (datos.length-1);
 
         delete window[callback];
 
@@ -260,18 +263,18 @@ function cargarDatos(){
 
     };
 
-    const script = document.createElement("script");
+    const script=document.createElement("script");
 
-    script.src =
-        API_URL +
-        "?callback=" + callback +
+    script.src=
+        API_URL+
+        "?callback="+callback+
         "&action=list";
 
-    script.onerror = function(){
+    script.onerror=function(){
 
         if(respondio) return;
 
-        estado.innerHTML = "Error de conexión";
+        estado.innerHTML="Error de conexión con Apps Script";
 
         delete window[callback];
 
@@ -282,6 +285,7 @@ function cargarDatos(){
 }
 
 cargarDatos();
+
 </script>
 
 </body>
