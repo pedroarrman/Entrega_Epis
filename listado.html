@@ -210,66 +210,71 @@ Cargando datos...
 
 <script>
 
-// CAMBIAR POR TU URL
+const API_URL = "https://script.google.com/macros/s/AKfycbzBk3cCZnlFTZW-vrpI0bmNb0cEYSFyjYek0f4_HllZQo4hk5q3YMhg2VmZ8obJMVWt/exec";
 
-const API_URL="https://script.google.com/macros/s/AKfycbzBk3cCZnlFTZW-vrpI0bmNb0cEYSFyjYek0f4_HllZQo4hk5q3YMhg2VmZ8obJMVWt/exec";
+function cargarDatos() {
 
-async function cargarDatos(){
+    const estado = document.getElementById("estado");
+    const tbody = document.querySelector("#tabla tbody");
 
-    document.getElementById("estado").innerHTML="Cargando datos...";
+    estado.innerHTML = "Cargando datos...";
+    tbody.innerHTML = "";
 
-    try{
+    const callbackName = "cb_listado_" + Date.now();
 
-        const respuesta=await fetch(API_URL);
+    window[callbackName] = function (res) {
 
-        const datos=await respuesta.json();
+        try {
 
-        const tbody=document.querySelector("#tabla tbody");
+            if (!res || !res.data) {
+                estado.innerHTML = "❌ No hay datos o error en servidor";
+                return;
+            }
 
-        tbody.innerHTML="";
+            const datos = res.data;
 
-        // Si solo viene la cabecera
-        if(datos.length<=1){
+            if (datos.length <= 1) {
+                estado.innerHTML = "No hay registros.";
+                return;
+            }
 
-            document.getElementById("estado").innerHTML="No hay registros.";
+            for (let i = 1; i < datos.length; i++) {
 
-            return;
+                const fila = document.createElement("tr");
 
+                datos[i].forEach(valor => {
+                    const td = document.createElement("td");
+                    td.textContent = valor;
+                    fila.appendChild(td);
+                });
+
+                tbody.appendChild(fila);
+            }
+
+            estado.innerHTML = "Registros encontrados: " + (datos.length - 1);
+
+        } catch (e) {
+            console.error(e);
+            estado.innerHTML = "❌ Error procesando datos";
         }
 
-        // Empezamos en la fila 1 porque la fila 0 son los encabezados
-        for(let i=1;i<datos.length;i++){
+        delete window[callbackName];
+        script.remove();
+    };
 
-            let fila=document.createElement("tr");
+    const script = document.createElement("script");
 
-            datos[i].forEach(valor=>{
+    script.src =
+        API_URL +
+        "?callback=" + callbackName +
+        "&action=list";
 
-                let td=document.createElement("td");
+    script.onerror = function () {
+        estado.innerHTML = "❌ Error de conexión con Apps Script";
+        delete window[callbackName];
+    };
 
-                td.textContent=valor;
-
-                fila.appendChild(td);
-
-            });
-
-            tbody.appendChild(fila);
-
-        }
-
-        document.getElementById("estado").innerHTML=
-
-            "Registros encontrados: "+(datos.length-1);
-
-    }
-
-    catch(error){
-
-        document.getElementById("estado").innerHTML="Error al cargar los datos.";
-
-        console.error(error);
-
-    }
-
+    document.body.appendChild(script);
 }
 
 cargarDatos();
