@@ -230,26 +230,36 @@ function cargarDatos() {
                 estado.innerHTML = "❌ No hay datos o error en servidor";
                 return;
             }
+            
+const datos = res.data;
 
-            const datos = res.data;
+if (!Array.isArray(datos)) {
+    estado.innerHTML = "❌ Formato de datos inválido";
+    return;
+}
 
-            if (datos.length <= 1) {
-                estado.innerHTML = "No hay registros.";
-                return;
-            }
+for (let i = 1; i < datos.length; i++) {
 
-            for (let i = 1; i < datos.length; i++) {
+    const fila = document.createElement("tr");
 
-                const fila = document.createElement("tr");
+    if (Array.isArray(datos[i])) {
 
-                datos[i].forEach(valor => {
-                    const td = document.createElement("td");
-                    td.textContent = valor;
-                    fila.appendChild(td);
-                });
+        datos[i].forEach(valor => {
+            const td = document.createElement("td");
+            td.textContent = valor;
+            fila.appendChild(td);
+        });
 
-                tbody.appendChild(fila);
-            }
+    } else {
+
+        // fallback por seguridad
+        const td = document.createElement("td");
+        td.textContent = JSON.stringify(datos[i]);
+        fila.appendChild(td);
+    }
+
+    tbody.appendChild(fila);
+}
 
             estado.innerHTML = "Registros encontrados: " + (datos.length - 1);
 
