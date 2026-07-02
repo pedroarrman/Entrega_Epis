@@ -244,86 +244,80 @@ new Date().toISOString().split("T")[0];
 // ENVIAR FORMULARIO
 // ===============================
 
-async function enviarFormulario() {
+function enviarFormulario() {
 
-try {
+    const nombre = document.getElementById("nombre").value.trim();
+    const dni = document.getElementById("dni").value.trim();
+    const fecha = document.getElementById("fecha").value;
 
-const nombreEl = document.getElementById("nombre");
-const dniEl = document.getElementById("dni");
-const fechaEl = document.getElementById("fecha");
+    const epis = [];
 
-if (!nombreEl || !dniEl || !fechaEl) {
-    alert("❌ ERROR: el DOM no ha cargado correctamente o hay caché antigua");
-    return;
-}
+    document
+        .querySelectorAll("input[name='epi']:checked")
+        .forEach(e => epis.push(e.value));
 
-const nombre = (nombreEl.value || "").trim();
-const dni = (dniEl.value || "").trim();
-const fecha = fechaEl.value || "";
+    if (!nombre) return alert("❌ Falta nombre");
+    if (!dni) return alert("❌ Falta DNI");
+    if (!fecha) return alert("❌ Falta fecha");
+    if (epis.length === 0) return alert("❌ Selecciona al menos un EPI");
 
-const epis = [...document.querySelectorAll("input[name='epi']:checked")]
-.map(e => e.value);
+    const datos = {
+        nombre,
+        dni,
+        fecha,
+        epis,
+        firma: canvas.toDataURL("image/png")
+    };
 
-// VALIDACIONES
-if (!nombre) return alert("❌ Falta nombre");
-if (!dni) return alert("❌ Falta DNI");
-if (!fecha) return alert("❌ Falta fecha");
-if (epis.length === 0) return alert("❌ Selecciona EPIs");
+    const callback = "cb_" + Date.now();
 
-const datos = {
-    nombre,
-    dni,
-    fecha,
-    epis,
-    firma: canvas.toDataURL("image/png")
-};
+    window[callback] = function (res) {
 
-// JSONP
-const callbackName = "cb_" + Date.now();
+        if (res.status === "ok") {
 
-window[callbackName] = function(res) {
+            alert("✔ ENTREGA REGISTRADA CORRECTAMENTE");
 
-    if (res.status === "ok") {
-        alert("✔ ENTREGA REGISTRADA CORRECTAMENTE");
+            document.getElementById("nombre").value = "";
+            document.getElementById("dni").value = "";
+            document.getElementById("fecha").value =
+                new Date().toISOString().split("T")[0];
 
-        nombreEl.value = "";
-        dniEl.value = "";
+            document
+                .querySelectorAll("input[name='epi']")
+                .forEach(c => c.checked = false);
 
-        document.querySelectorAll("input[name='epi']")
-            .forEach(c => c.checked = false);
+            limpiarFirma();
 
-        limpiarFirma();
+        } else {
 
-        document.getElementById("fecha").value =
-            new Date().toISOString().split("T")[0];
+            alert("❌ " + res.msg);
 
-    } else {
-        alert("❌ ERROR EN SERVIDOR: " + (res.msg || "desconocido"));
-    }
+        }
 
-    delete window[callbackName];
-    script.remove();
-};
+        delete window[callback];
 
-const url = API_URL +
-    "?callback=" + callbackName +
-    "&data=" + encodeURIComponent(JSON.stringify(datos));
+        if (script.parentNode) {
+            script.parentNode.removeChild(script);
+        }
 
-const script = document.createElement("script");
+    };
 
-script.src = url;
+    const script = document.createElement("script");
 
-script.onerror = function () {
-    alert("❌ ERROR DE CONEXIÓN CON APPS SCRIPT");
-    delete window[callbackName];
-};
+    script.src =
+        API_URL +
+        "?callback=" + callback +
+        "&data=" + encodeURIComponent(JSON.stringify(datos));
 
-document.body.appendChild(script);
+    script.onerror = function () {
 
-} catch (error) {
-    console.error(error);
-    alert("❌ ERROR INTERNO DEL FORMULARIO");
-}
+        alert("❌ Error de conexión con Apps Script");
+
+        delete window[callback];
+
+    };
+
+    document.body.appendChild(script);
 
 }
 
