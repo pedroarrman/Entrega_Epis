@@ -66,8 +66,7 @@ label{
 }
 
 input[type=text],
-input[type=date],
-select{
+input[type=date]{
     width:100%;
     padding:12px;
     margin-top:5px;
@@ -124,11 +123,7 @@ button{
 }
 
 @media(min-width:768px){
-
-#listaEpis{
-    grid-template-columns:1fr 1fr;
-}
-
+#listaEpis{grid-template-columns:1fr 1fr;}
 }
 
 </style>
@@ -138,7 +133,6 @@ button{
 <body>
 
 <header>
-
 <h1>Entrega de EPIs</h1>
 
 <nav>
@@ -151,7 +145,6 @@ button{
 <main>
 
 <div class="card">
-
 
 <label>Nombre</label>
 <input type="text" id="nombre">
@@ -167,59 +160,35 @@ button{
 <div id="listaEpis">
 
 <label><input type="checkbox" name="epi" value="BATA VERDE"> BATA VERDE</label>
-
 <label><input type="checkbox" name="epi" value="CALZADO SEGURIDAD"> CALZADO SEGURIDAD</label>
-
 <label><input type="checkbox" name="epi" value="CASCOS DE PROTECCION"> CASCOS DE PROTECCION</label>
-
 <label><input type="checkbox" name="epi" value="GORRA PELO"> GORRA PELO</label>
-
 <label><input type="checkbox" name="epi" value="GUANTE CUERO MARCA EN-388"> GUANTE CUERO MARCA EN-388</label>
-
 <label><input type="checkbox" name="epi" value="GUANTE NEOPRENO EN-374"> GUANTE NEOPRENO EN-374</label>
-
 <label><input type="checkbox" name="epi" value="GUANTE NITRIPOR GOMA EN-388"> GUANTE NITRIPOR GOMA EN-388</label>
-
 <label><input type="checkbox" name="epi" value="GUANTE WURTH GOMA EN-388 GRIS"> GUANTE WURTH GOMA EN-388 GRIS</label>
-
 <label><input type="checkbox" name="epi" value="GUANTE WURTH GOMA EN-388 MARRON"> GUANTE WURTH GOMA EN-388 MARRON</label>
-
 <label><input type="checkbox" name="epi" value="MASCARILLA QUIRURGICA"> MASCARILLA QUIRURGICA</label>
-
 <label><input type="checkbox" name="epi" value="MASCARILLA FPP2"> MASCARILLA FPP2</label>
 <label><input type="checkbox" name="epi" value="POLAR"> POLAR</label>
-
 <label><input type="checkbox" name="epi" value="TAPONES AUDITIVOS"> TAPONES AUDITIVOS</label>
-
 <label><input type="checkbox" name="epi" value="CHALECO ALTA VISIBILIDAD"> CHALECO ALTA VISIBILIDAD</label>
-
 <label><input type="checkbox" name="epi" value="PANTALÓN DE TRABAJO"> PANTALÓN DE TRABAJO</label>
-
 <label><input type="checkbox" name="epi" value="GUANTES DE NITILO"> GUANTES DE NITILO</label>
-
 <label><input type="checkbox" name="epi" value="BATA LABORATORIO"> BATA LABORATORIO</label>
-
 <label><input type="checkbox" name="epi" value="MANDIL IMPERMEABLE"> MANDIL IMPERMEABLE</label>
-
 <label><input type="checkbox" name="epi" value="CAMISETA GRIS"> CAMISETA GRIS</label>
-
 <label><input type="checkbox" name="epi" value="CAMISETA REFLECTANTE"> CAMISETA REFLECTANTE</label>
 
 </div>
 
-<h3 style="margin-top:25px;">Firma del trabajador</h3>
-
+<h3>Firma del trabajador</h3>
 <canvas id="canvas"></canvas>
 
 <div class="botones">
 
-<button type="button" id="btnLimpiar" onclick="limpiarFirma()">
-Limpiar firma
-</button>
-
-<button type="button" id="btnEnviar" onclick="enviarFormulario()">
-Enviar
-</button>
+<button type="button" id="btnLimpiar" onclick="limpiarFirma()">Limpiar firma</button>
+<button type="button" id="btnEnviar" onclick="enviarFormulario()">Enviar</button>
 
 </div>
 
@@ -229,204 +198,87 @@ Enviar
 
 <script>
 
+const API_URL="https://script.google.com/macros/s/AKfycbzBk3cCZnlFTZW-vrpI0bmNb0cEYSFyjYek0f4_HllZQo4hk5q3YMhg2VmZ8obJMVWt/exec";
+
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
-function ajustarCanvas(){
-
-    const ratio=window.devicePixelRatio || 1;
-
-    canvas.width=canvas.offsetWidth*ratio;
-    canvas.height=220*ratio;
-
-    ctx.scale(ratio,ratio);
-
-}
-
-ajustarCanvas();
-
-window.addEventListener("resize",ajustarCanvas);
-
 let dibujando=false;
 
-canvas.addEventListener("mousedown",iniciar);
+function ajustar(){
+canvas.width=canvas.offsetWidth;
+canvas.height=220;
+}
+ajustar();
+
+canvas.addEventListener("mousedown",()=>dibujando=true);
+canvas.addEventListener("mouseup",()=>dibujando=false);
 canvas.addEventListener("mousemove",dibujar);
-canvas.addEventListener("mouseup",detener);
-canvas.addEventListener("mouseleave",detener);
-
-canvas.addEventListener("touchstart",iniciarTouch,{passive:false});
-canvas.addEventListener("touchmove",dibujarTouch,{passive:false});
-canvas.addEventListener("touchend",detener);
-
-function iniciar(){
-
-    dibujando=true;
-    ctx.beginPath();
-
-}
-
-function detener(){
-
-    dibujando=false;
-    ctx.beginPath();
-
-}
 
 function dibujar(e){
+if(!dibujando) return;
 
-    if(!dibujando)return;
+ctx.lineWidth=2;
+ctx.lineCap="round";
 
-    ctx.lineWidth=2;
-    ctx.lineCap="round";
+ctx.lineTo(e.offsetX,e.offsetY);
+ctx.stroke();
 
-    ctx.lineTo(e.offsetX,e.offsetY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(e.offsetX,e.offsetY);
-
-}
-
-function iniciarTouch(e){
-
-    e.preventDefault();
-    dibujando=true;
-
-}
-
-function dibujarTouch(e){
-
-    e.preventDefault();
-
-    if(!dibujando)return;
-
-    const rect=canvas.getBoundingClientRect();
-
-    const x=e.touches[0].clientX-rect.left;
-    const y=e.touches[0].clientY-rect.top;
-
-    ctx.lineWidth=2;
-    ctx.lineCap="round";
-
-    ctx.lineTo(x,y);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x,y);
-
+ctx.beginPath();
+ctx.moveTo(e.offsetX,e.offsetY);
 }
 
 function limpiarFirma(){
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-}
-// Fecha automática
-window.onload=function(){
-
-    const hoy=new Date();
-
-    const fecha=
-        hoy.getFullYear()+"-"+
-        String(hoy.getMonth()+1).padStart(2,"0")+"-"+
-        String(hoy.getDate()).padStart(2,"0");
-
-    document.getElementById("fecha").value=fecha;
-
+ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
-//=====================================
-// URL DEL APPS SCRIPT
-//=====================================
-
-const API_URL="https://script.google.com/macros/s/AKfycbzBk3cCZnlFTZW-vrpI0bmNb0cEYSFyjYek0f4_HllZQo4hk5q3YMhg2VmZ8obJMVWt/exec";
-    
-//=====================================
+window.onload=()=>{
+document.getElementById("fecha").value=
+new Date().toISOString().split("T")[0];
+};
 
 async function enviarFormulario(){
 
-    const nombre = document.getElementById("nombre").value.trim();
-    const dni = document.getElementById("dni").value.trim();
-    const fecha = document.getElementById("fecha").value;
+try{
 
-    const epis = [];
+const nombre=document.getElementById("nombre")?.value?.trim() || "";
+const dni=document.getElementById("dni")?.value?.trim() || "";
+const fecha=document.getElementById("fecha")?.value || "";
 
-    document
-        .querySelectorAll("input[name='epi']:checked")
-        .forEach(c => epis.push(c.value));
+const epis=[...document.querySelectorAll("input[name='epi']:checked")]
+.map(e=>e.value);
 
-    if(nombre === ""){
-        alert("Introduzca el nombre.");
-        return;
-    }
+if(!nombre) return alert("Falta nombre");
+if(!dni) return alert("Falta DNI");
+if(!fecha) return alert("Falta fecha");
+if(epis.length===0) return alert("Selecciona EPIs");
 
-    if(dni === ""){
-        alert("Introduzca el DNI.");
-        return;
-    }
+const datos={
+nombre,
+dni,
+fecha,
+epis,
+firma:canvas.toDataURL("image/png")
+};
 
-    if(fecha === ""){
-        alert("Seleccione la fecha.");
-        return;
-    }
+const res=await fetch(API_URL,{
+method:"POST",
+body:JSON.stringify(datos)
+});
 
-    if(epis.length === 0){
-        alert("Seleccione al menos un EPI.");
-        return;
-    }
+const txt=await res.text();
 
-    const datos = {
-        nombre: nombre,
-        dni: dni,
-        fecha: fecha,
-        epis: epis,
-        firma: canvas.toDataURL("image/png")
-    };
+alert("✔ Enviado correctamente");
 
-    try{
+document.getElementById("nombre").value="";
+document.getElementById("dni").value="";
+document.querySelectorAll("input[name='epi']").forEach(c=>c.checked=false);
+limpiarFirma();
 
-        const respuesta = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(datos)
-        });
-
-        const resultado = await respuesta.json();
-
-        if(resultado.status === "ok"){
-
-            alert("Entrega registrada correctamente.");
-
-            document.getElementById("nombre").value = "";
-            document.getElementById("dni").value = "";
-
-            document
-                .querySelectorAll("input[name='epi']")
-                .forEach(c => c.checked = false);
-
-            limpiarFirma();
-
-            const hoy = new Date();
-
-            document.getElementById("fecha").value =
-                hoy.getFullYear() + "-" +
-                String(hoy.getMonth() + 1).padStart(2, "0") + "-" +
-                String(hoy.getDate()).padStart(2, "0");
-
-        }else{
-
-            alert("Error: " + resultado.mensaje);
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-        alert("No se pudo conectar con el servidor.");
-
-    }
+}catch(err){
+console.error(err);
+alert("❌ Error enviando datos (Apps Script o red)");
+}
 
 }
 
