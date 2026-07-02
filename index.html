@@ -345,82 +345,86 @@ const API_URL="https://script.google.com/macros/s/AKfycbzBk3cCZnlFTZW-vrpI0bmNb0
 
 async function enviarFormulario(){
 
-    const nombre=document.getElementById("nombre").value.trim();
-    const dni=document.getElementById("dni").value.trim();
-    const fecha=document.getElementById("fecha").value;
+    const nombre = document.getElementById("nombre").value.trim();
+    const dni = document.getElementById("dni").value.trim();
+    const fecha = document.getElementById("fecha").value;
 
-    const epis=[];
+    const epis = [];
 
     document
         .querySelectorAll("input[name='epi']:checked")
-        .forEach(c=>epis.push(c.value));
+        .forEach(c => epis.push(c.value));
 
-    if(nombre===""){
+    if(nombre === ""){
         alert("Introduzca el nombre.");
         return;
     }
 
-    if(dni===""){
+    if(dni === ""){
         alert("Introduzca el DNI.");
         return;
     }
 
-    if(epis.length===0){
+    if(fecha === ""){
+        alert("Seleccione la fecha.");
+        return;
+    }
+
+    if(epis.length === 0){
         alert("Seleccione al menos un EPI.");
         return;
     }
 
-    const datos={
-
-        nombre:nombre,
-        dni:dni,
-        fecha:fecha,
-        epis:epis,
-        firma:canvas.toDataURL("image/png")
-
+    const datos = {
+        nombre: nombre,
+        dni: dni,
+        fecha: fecha,
+        epis: epis,
+        firma: canvas.toDataURL("image/png")
     };
 
     try{
 
-        const respuesta=await fetch(API_URL,{
-
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
+        const respuesta = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
             },
-
-            body:JSON.stringify(datos)
-
+            body: JSON.stringify(datos)
         });
 
-        const resultado=await respuesta.text();
+        const resultado = await respuesta.json();
 
-        alert("Entrega registrada correctamente.");
+        if(resultado.status === "ok"){
 
-        document.getElementById("nombre").value="";
-        document.getElementById("dni").value="";
+            alert("Entrega registrada correctamente.");
 
-        document
-            .querySelectorAll("input[name='epi']")
-            .forEach(c=>c.checked=false);
+            document.getElementById("nombre").value = "";
+            document.getElementById("dni").value = "";
 
-        limpiarFirma();
+            document
+                .querySelectorAll("input[name='epi']")
+                .forEach(c => c.checked = false);
 
-        const hoy=new Date();
+            limpiarFirma();
 
-        document.getElementById("fecha").value=
-            hoy.getFullYear()+"-"+
-            String(hoy.getMonth()+1).padStart(2,"0")+"-"+
-            String(hoy.getDate()).padStart(2,"0");
+            const hoy = new Date();
 
-    }
+            document.getElementById("fecha").value =
+                hoy.getFullYear() + "-" +
+                String(hoy.getMonth() + 1).padStart(2, "0") + "-" +
+                String(hoy.getDate()).padStart(2, "0");
 
-    catch(error){
+        }else{
 
-        alert("No se pudo conectar con el servidor.");
+            alert("Error: " + resultado.mensaje);
+
+        }
+
+    }catch(error){
 
         console.error(error);
+        alert("No se pudo conectar con el servidor.");
 
     }
 
