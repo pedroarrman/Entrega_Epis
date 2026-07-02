@@ -210,81 +210,56 @@ Cargando datos...
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzBk3cCZnlFTZW-vrpI0bmNb0cEYSFyjYek0f4_HllZQo4hk5q3YMhg2VmZ8obJMVWt/exec";
+const URL =
+"https://docs.google.com/spreadsheets/d/1iue2YWoY9qE_km5UGMxNRVEkf-tcHB-m53ZtfvbU9mw/gviz/tq?tqx=out:json&sheet=ENTREGAS_EPIS";
 
-function cargarDatos() {
+async function cargarDatos() {
 
-    const estado = document.getElementById("estado");
-    const tbody = document.querySelector("#tabla tbody");
+const estado = document.getElementById("estado");
+const tbody = document.querySelector("#tabla tbody");
 
-    estado.innerHTML = "Cargando datos...";
-    tbody.innerHTML = "";
+estado.innerHTML = "Cargando datos...";
+tbody.innerHTML = "";
 
-    const callbackName = "cb_listado_" + Date.now();
+try {
 
-    window[callbackName] = function (res) {
+const res = await fetch(URL);
+const text = await res.text();
 
-        try {
+// limpiar wrapper Google
+const json = JSON.parse(text.substr(47).slice(0, -2));
 
-            if (!res || !res.data) {
-                estado.innerHTML = "❌ No hay datos o error en servidor";
-                return;
-            }
-            
-const datos = res.data;
+const rows = json.table.rows;
 
-if (!Array.isArray(datos)) {
-    estado.innerHTML = "❌ Formato de datos inválido";
-    return;
+if (!rows || rows.length === 0) {
+estado.innerHTML = "No hay datos";
+return;
 }
 
-for (let i = 1; i < datos.length; i++) {
+rows.forEach(r => {
 
-    const fila = document.createElement("tr");
+const c = r.c;
 
-    if (Array.isArray(datos[i])) {
+const fila = document.createElement("tr");
 
-        datos[i].forEach(valor => {
-            const td = document.createElement("td");
-            td.textContent = valor;
-            fila.appendChild(td);
-        });
+fila.innerHTML = `
+<td>${c[0]?.v || ""}</td>
+<td>${c[1]?.v || ""}</td>
+<td>${c[2]?.v || ""}</td>
+<td>${c[3]?.v || ""}</td>
+`;
 
-    } else {
+tbody.appendChild(fila);
 
-        // fallback por seguridad
-        const td = document.createElement("td");
-        td.textContent = JSON.stringify(datos[i]);
-        fila.appendChild(td);
-    }
+});
 
-    tbody.appendChild(fila);
+estado.innerHTML = "Registros: " + rows.length;
+
+} catch (e) {
+console.error(e);
+estado.innerHTML = "Error cargando datos";
 }
 
-            estado.innerHTML = "Registros encontrados: " + (datos.length - 1);
-
-        } catch (e) {
-            console.error(e);
-            estado.innerHTML = "❌ Error procesando datos";
-        }
-
-        delete window[callbackName];
-        script.remove();
-    };
-
-    const script = document.createElement("script");
-
-    script.src =
-        API_URL +
-        "?callback=" + callbackName +
-        "&action=list";
-
-    script.onerror = function () {
-        estado.innerHTML = "❌ Error de conexión con Apps Script";
-        delete window[callbackName];
-    };
-
-    document.body.appendChild(script);
 }
 
 cargarDatos();
