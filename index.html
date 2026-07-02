@@ -208,18 +208,20 @@ let dibujando=false;
 function ajustar(){
 canvas.width=canvas.offsetWidth;
 canvas.height=220;
+ctx.lineCap="round";
+ctx.lineWidth=2;
 }
 ajustar();
 
+window.addEventListener("resize", ajustar);
+
 canvas.addEventListener("mousedown",()=>dibujando=true);
 canvas.addEventListener("mouseup",()=>dibujando=false);
+canvas.addEventListener("mouseleave",()=>dibujando=false);
 canvas.addEventListener("mousemove",dibujar);
 
 function dibujar(e){
 if(!dibujando) return;
-
-ctx.lineWidth=2;
-ctx.lineCap="round";
 
 ctx.lineTo(e.offsetX,e.offsetY);
 ctx.stroke();
@@ -230,12 +232,17 @@ ctx.moveTo(e.offsetX,e.offsetY);
 
 function limpiarFirma(){
 ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.beginPath();
 }
 
 window.onload=()=>{
 document.getElementById("fecha").value=
 new Date().toISOString().split("T")[0];
 };
+
+// ===============================
+// ENVIAR FORMULARIO
+// ===============================
 
 async function enviarFormulario(){
 
@@ -246,7 +253,7 @@ const dniEl = document.getElementById("dni");
 const fechaEl = document.getElementById("fecha");
 
 if(!nombreEl || !dniEl || !fechaEl){
-    alert("❌ Error: faltan campos en el HTML");
+    alert("❌ ERROR: faltan campos en el HTML");
     return;
 }
 
@@ -257,11 +264,13 @@ const fecha = fechaEl.value;
 const epis = [...document.querySelectorAll("input[name='epi']:checked")]
 .map(e => e.value);
 
-if(!nombre) return alert("Falta nombre");
-if(!dni) return alert("Falta DNI");
-if(!fecha) return alert("Falta fecha");
-if(epis.length === 0) return alert("Selecciona EPIs");
+// VALIDACIONES
+if(!nombre) return alert("❌ Falta nombre");
+if(!dni) return alert("❌ Falta DNI");
+if(!fecha) return alert("❌ Falta fecha");
+if(epis.length === 0) return alert("❌ Selecciona al menos un EPI");
 
+// DATOS
 const datos = {
 nombre,
 dni,
@@ -270,43 +279,55 @@ epis,
 firma: canvas.toDataURL("image/png")
 };
 
-const res = await fetch(API_URL, {
-method: "POST",
-body: JSON.stringify(datos)
-});
+// ===============================
+// JSONP (NO fetch)
+// ===============================
 
-const texto = await res.text();
+const callbackName = "cb_" + Date.now();
 
-// ----------------------
-// CONTROL DE ÉXITO
-// ----------------------
+window[callbackName] = function(res){
 
-if(res.ok){
+    if(res.status === "ok"){
+        alert("✔ ENTREGA REGISTRADA CORRECTAMENTE");
 
-    alert("✔ ENTREGA REGISTRADA CORRECTAMENTE");
+        nombreEl.value = "";
+        dniEl.value = "";
 
-    // limpiar formulario
-    nombreEl.value = "";
-    dniEl.value = "";
+        document.querySelectorAll("input[name='epi']")
+            .forEach(c => c.checked = false);
 
-    document.querySelectorAll("input[name='epi']")
-        .forEach(c => c.checked = false);
+        limpiarFirma();
 
-    limpiarFirma();
+        document.getElementById("fecha").value =
+            new Date().toISOString().split("T")[0];
 
-    document.getElementById("fecha").value =
-        new Date().toISOString().split("T")[0];
+    }else{
+        alert("❌ ERROR EN SERVIDOR: " + (res.msg || "desconocido"));
+    }
 
-}else{
+    delete window[callbackName];
+    script.remove();
+};
 
-    alert("❌ ERROR EN SERVIDOR: " + texto);
+const url = API_URL +
+    "?callback=" + callbackName +
+    "&data=" + encodeURIComponent(JSON.stringify(datos));
 
-}
+const script = document.createElement("script");
+
+script.src = url;
+
+script.onerror = function(){
+    alert("❌ ERROR DE CONEXIÓN CON APPS SCRIPT");
+    delete window[callbackName];
+};
+
+document.body.appendChild(script);
 
 }catch(error){
 
 console.error(error);
-alert("❌ ERROR DE CONEXIÓN CON APPS SCRIPT");
+alert("❌ ERROR INTERNO DEL FORMULARIO");
 
 }
 
