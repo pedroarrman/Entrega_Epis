@@ -86,6 +86,10 @@ input[type=date]{
     font-weight:normal;
 }
 
+#zonaFirma{
+    display:none;
+}
+    
 canvas{
     width:100%;
     height:220px;
@@ -182,14 +186,31 @@ button{
 
 </div>
 
-<h3>Firma del trabajador</h3>
-<canvas id="canvas"></canvas>
+<div id="zonaFirma">
 
+    <h3>Firma del trabajador</h3>
+
+    <canvas id="canvas"></canvas>
+
+    <button
+        type="button"
+        id="btnLimpiar"
+        onclick="limpiarFirma()">
+        Limpiar firma
+    </button>
+
+</div>
+    
 <div class="botones">
 
-<button type="button" id="btnLimpiar" onclick="limpiarFirma()">Limpiar firma</button>
-<button type="button" id="btnEnviar" onclick="enviarFormulario()">Enviar</button>
+    <button
+        type="button"
+        id="btnEnviar"
+        onclick="enviarFormulario()">
+        Enviar
+    </button>
 
+</div>
 </div>
 
 </div>
@@ -266,7 +287,7 @@ function enviarFormulario() {
         dni,
         fecha,
         epis,
-        firma: canvas.toDataURL("image/png")
+        firma: ""
     };
 
     const callback = "cb_" + Date.now();
